@@ -204,6 +204,11 @@ a { color: var(--navy); }
 }
 .hero p.lead { font-size: 1.08rem; color: var(--ink-soft); max-width: 34ch; }
 .hero .cta-row { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+.hero .cta-secondary {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
 
 .preview-shell {
   background: linear-gradient(160deg, var(--lavender), var(--lavender-soft));
