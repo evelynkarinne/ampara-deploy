@@ -209,6 +209,9 @@ a { color: var(--navy); }
   justify-content: center;
   margin-top: 14px;
 }
+.hero .cta-secondary .btn {
+  background-color: #dcd0eb;
+}
 
 .preview-shell {
   background: linear-gradient(160deg, var(--lavender), var(--lavender-soft));
