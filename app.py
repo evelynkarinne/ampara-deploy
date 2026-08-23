@@ -34,6 +34,13 @@ def home():
         "index.html"
     )
 
+@app.route("/health")
+def health():
+    return {
+        "status": "ok",
+        "application": "Flask API",
+        "service": "Render"
+    }, 200
 
 @app.route("/cadastro")
 def cadastro():
