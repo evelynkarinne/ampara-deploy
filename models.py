@@ -330,4 +330,3 @@ class RegistroSaudeMental(db.Model):
                 else None
             )
         }
-```
