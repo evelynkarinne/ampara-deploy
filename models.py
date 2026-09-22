@@ -1,14 +1,19 @@
+
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 db = SQLAlchemy()
+
+# ============================================================
+# USUÁRIO
+# ============================================================
 
 class Usuario(db.Model):
     __tablename__ = "usuarios"
     __table_args__ = {"extend_existing": True}
 
     id = db.Column(
-        db.Integer,
+        db.BigInteger,
         primary_key=True
     )
 
@@ -57,7 +62,10 @@ class Usuario(db.Model):
         default=False
     )
 
-    # Relacionamentos
+    # ========================================================
+    # RELACIONAMENTOS
+    # ========================================================
+
     turmas = db.relationship(
         "Turma",
         back_populates="responsavel",
@@ -70,6 +78,10 @@ class Usuario(db.Model):
         foreign_keys="RegistroSaudeMental.usuario_id"
     )
 
+    # ========================================================
+    # CONVERSÃO PARA JSON
+    # ========================================================
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -81,11 +93,15 @@ class Usuario(db.Model):
         }
 
 
+# ============================================================
+# TURMA
+# ============================================================
+
 class Turma(db.Model):
     __tablename__ = "turmas"
 
     id = db.Column(
-        db.Integer,
+        db.BigInteger,
         primary_key=True
     )
 
@@ -105,8 +121,11 @@ class Turma(db.Model):
     )
 
     usuario_id = db.Column(
-        db.Integer,
-        db.ForeignKey("usuarios.id"),
+        db.BigInteger,
+        db.ForeignKey(
+            "usuarios.id",
+            ondelete="SET NULL"
+        ),
         nullable=True
     )
 
@@ -116,7 +135,10 @@ class Turma(db.Model):
         nullable=False
     )
 
-    # Relacionamentos
+    # ========================================================
+    # RELACIONAMENTOS
+    # ========================================================
+
     responsavel = db.relationship(
         "Usuario",
         back_populates="turmas",
@@ -129,6 +151,10 @@ class Turma(db.Model):
         cascade="all, delete-orphan"
     )
 
+    # ========================================================
+    # CONVERSÃO PARA JSON
+    # ========================================================
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -136,17 +162,26 @@ class Turma(db.Model):
             "ano": self.ano,
             "escola": self.escola,
             "usuario_id": self.usuario_id,
-            "data_cadastro": self.data_cadastro.isoformat()
-            if self.data_cadastro else None,
-            "quantidade_estudantes": len(self.estudantes)
+            "data_cadastro": (
+                self.data_cadastro.isoformat()
+                if self.data_cadastro
+                else None
+            ),
+            "quantidade_estudantes": len(
+                self.estudantes
+            )
         }
 
+
+# ============================================================
+# ESTUDANTE
+# ============================================================
 
 class Estudante(db.Model):
     __tablename__ = "estudantes"
 
     id = db.Column(
-        db.Integer,
+        db.BigInteger,
         primary_key=True
     )
 
@@ -161,8 +196,11 @@ class Estudante(db.Model):
     )
 
     turma_id = db.Column(
-        db.Integer,
-        db.ForeignKey("turmas.id", ondelete="CASCADE"),
+        db.BigInteger,
+        db.ForeignKey(
+            "turmas.id",
+            ondelete="CASCADE"
+        ),
         nullable=False
     )
 
@@ -172,7 +210,10 @@ class Estudante(db.Model):
         nullable=False
     )
 
-    # Relacionamentos
+    # ========================================================
+    # RELACIONAMENTOS
+    # ========================================================
+
     turma = db.relationship(
         "Turma",
         back_populates="estudantes"
@@ -185,37 +226,54 @@ class Estudante(db.Model):
         order_by="RegistroSaudeMental.data_registro.desc()"
     )
 
+    # ========================================================
+    # CONVERSÃO PARA JSON
+    # ========================================================
+
     def to_dict(self):
         return {
             "id": self.id,
             "nome": self.nome,
             "matricula": self.matricula,
             "turma_id": self.turma_id,
-            "data_cadastro": self.data_cadastro.isoformat()
-            if self.data_cadastro else None,
+            "data_cadastro": (
+                self.data_cadastro.isoformat()
+                if self.data_cadastro
+                else None
+            ),
             "quantidade_registros": len(
                 self.registros_saude_mental
             )
         }
 
 
+# ============================================================
+# REGISTRO DE SAÚDE MENTAL
+# ============================================================
+
 class RegistroSaudeMental(db.Model):
     __tablename__ = "registros_saude_mental"
 
     id = db.Column(
-        db.Integer,
+        db.BigInteger,
         primary_key=True
     )
 
     estudante_id = db.Column(
-        db.Integer,
-        db.ForeignKey("estudantes.id", ondelete="CASCADE"),
+        db.BigInteger,
+        db.ForeignKey(
+            "estudantes.id",
+            ondelete="CASCADE"
+        ),
         nullable=False
     )
 
     usuario_id = db.Column(
-        db.Integer,
-        db.ForeignKey("usuarios.id"),
+        db.BigInteger,
+        db.ForeignKey(
+            "usuarios.id",
+            ondelete="RESTRICT"
+        ),
         nullable=False
     )
 
@@ -240,7 +298,10 @@ class RegistroSaudeMental(db.Model):
         nullable=False
     )
 
-    # Relacionamentos
+    # ========================================================
+    # RELACIONAMENTOS
+    # ========================================================
+
     estudante = db.relationship(
         "Estudante",
         back_populates="registros_saude_mental"
@@ -251,6 +312,10 @@ class RegistroSaudeMental(db.Model):
         back_populates="registros_saude_mental"
     )
 
+    # ========================================================
+    # CONVERSÃO PARA JSON
+    # ========================================================
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -259,6 +324,10 @@ class RegistroSaudeMental(db.Model):
             "tipo": self.tipo,
             "gravidade": self.gravidade,
             "descricao": self.descricao,
-            "data_registro": self.data_registro.isoformat()
-            if self.data_registro else None
+            "data_registro": (
+                self.data_registro.isoformat()
+                if self.data_registro
+                else None
+            )
         }
+```
