@@ -14,7 +14,6 @@ from werkzeug.security import (
 )
 
 from config import Config
-
 from models import (
     db,
     Usuario,
@@ -25,12 +24,10 @@ from models import (
 
 import os
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
-
 
 # ============================================================
 # BANCO DE DADOS
@@ -38,7 +35,6 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
-
 
 # ============================================================
 # PÁGINAS
@@ -48,31 +44,25 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
-
 @app.route("/cadastro")
 def cadastro():
     return render_template("cadastro.html")
-
 
 @app.route("/login")
 def login_page():
     return render_template("login.html")
 
-
 @app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
-
 
 @app.route("/cadastro_turma")
 def cadastro_turma():
     return render_template("cadastro_turma.html")
 
-
 @app.route("/cadastro_estudante")
 def cadastro_estudante():
     return render_template("cadastro_estudante.html")
-
 
 # ============================================================
 # API — USUÁRIOS
