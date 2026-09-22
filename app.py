@@ -27,6 +27,12 @@ import os
 app = Flask(__name__)
 app.config.from_object(Config)
 
+@app.route("/health")
+def health():
+    return jsonify({
+        "status": "ok"
+    }), 200
+
 db.init_app(app)
 
 # ============================================================
