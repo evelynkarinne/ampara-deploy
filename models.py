@@ -63,12 +63,6 @@ class Escola(db.Model):
         foreign_keys="Turma.escola_id"
     )
 
-    usuarios_turmas = db.relationship(
-        "UsuarioTurma",
-        back_populates="escola",
-        cascade="all, delete-orphan"
-    )
-
     # ========================================================
     # CONVERSÃO PARA JSON
     # ========================================================
@@ -95,7 +89,10 @@ class Escola(db.Model):
 
 class Usuario(db.Model):
     __tablename__ = "usuarios"
-    __table_args__ = {"extend_existing": True}
+
+    __table_args__ = {
+        "extend_existing": True
+    }
 
     id = db.Column(
         db.BigInteger,
@@ -136,7 +133,6 @@ class Usuario(db.Model):
     # --------------------------------------------------------
     # CAMPO ANTIGO
     # Mantido temporariamente para compatibilidade.
-    # Futuramente será substituído por escola_id.
     # --------------------------------------------------------
 
     escola = db.Column(
@@ -179,8 +175,7 @@ class Usuario(db.Model):
 
     # --------------------------------------------------------
     # RELACIONAMENTO ANTIGO COM TURMAS
-    # Mantido temporariamente porque o app.py atual ainda
-    # utiliza turmas.usuario_id.
+    # Mantido temporariamente para compatibilidade.
     # --------------------------------------------------------
 
     turmas = db.relationship(
@@ -191,7 +186,7 @@ class Usuario(db.Model):
 
     # --------------------------------------------------------
     # NOVO RELACIONAMENTO COM TURMAS
-    # através da tabela usuarios_turmas
+    # através de usuarios_turmas
     # --------------------------------------------------------
 
     vinculos_turmas = db.relationship(
@@ -270,8 +265,7 @@ class Turma(db.Model):
 
     # --------------------------------------------------------
     # CAMPO ANTIGO DE RESPONSÁVEL
-    # Mantido temporariamente porque o app.py atual ainda
-    # utiliza este relacionamento.
+    # Mantido temporariamente para compatibilidade.
     # --------------------------------------------------------
 
     usuario_id = db.Column(
@@ -395,12 +389,6 @@ class UsuarioTurma(db.Model):
         back_populates="vinculos_usuarios"
     )
 
-    # Escola é obtida indiretamente através da turma.
-    # Não existe escola_id nesta tabela.
-    @property
-    def escola(self):
-        return self.turma.escola_relacao if self.turma else None
-
     # ========================================================
     # CONVERSÃO PARA JSON
     # ========================================================
@@ -467,7 +455,9 @@ class Estudante(db.Model):
         "RegistroSaudeMental",
         back_populates="estudante",
         cascade="all, delete-orphan",
-        order_by="RegistroSaudeMental.data_registro.desc()"
+        order_by=(
+            "RegistroSaudeMental.data_registro.desc()"
+        )
     )
 
     # ========================================================
