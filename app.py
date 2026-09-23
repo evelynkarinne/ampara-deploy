@@ -20,7 +20,7 @@ from models import (
     Escola,
     Usuario,
     Turma,
-    UsuarioTurma,
+    #UsuarioTurma,
     Estudante,
     RegistroSaudeMental
 )
