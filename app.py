@@ -123,7 +123,6 @@ def obter_escola(escola_id):
 # ============================================================
 # API — USUÁRIOS
 # ============================================================
-
 @app.route("/api/cadastro", methods=["POST"])
 def cadastrar():
 
@@ -135,95 +134,88 @@ def cadastrar():
             "mensagem": "Dados não enviados."
         }), 400
 
-    nome = dados.get("nome")
-    email = dados.get("email")
-    telefone = dados.get("telefone")
-    perfil = dados.get("perfil")
-    matricula = dados.get("matricula")
-    estado = dados.get("estado")
-    municipio = dados.get("municipio")
-    escola_id = dados.get("escola_id")
-    escola_nome = dados.get("escola")
-    senha = dados.get("senha")
-
     # --------------------------------------------------------
-    # Validação
+    # Validação básica
     # --------------------------------------------------------
 
-    if not nome or not email or not senha:
-        return jsonify({
-            "sucesso": False,
-            "mensagem": (
-                "Nome, e-mail e senha são obrigatórios."
-            )
-        }), 400
+    campos_obrigatorios = [
+        "nome",
+        "email",
+        "telefone",
+        "perfil",
+        "matricula",
+        "estado",
+        "municipio",
+        "senha"
+    ]
+
+    for campo in campos_obrigatorios:
+
+        if not dados.get(campo):
+
+            return jsonify({
+                "sucesso": False,
+                "mensagem": f"O campo '{campo}' é obrigatório."
+            }), 400
 
     # --------------------------------------------------------
-    # Verificar e-mail existente
+    # Verificar se o e-mail já está cadastrado
     # --------------------------------------------------------
 
     usuario_existente = Usuario.query.filter_by(
-        email=email
+        email=dados["email"]
     ).first()
 
     if usuario_existente:
+
         return jsonify({
             "sucesso": False,
             "mensagem": "E-mail já cadastrado."
         }), 400
 
     # --------------------------------------------------------
-    # Localizar escola
+    # ESCOLA AMPARA
     #
-    # Preferimos escola_id.
-    # Se o frontend antigo enviar apenas o nome da escola,
-    # tentamos localizar pelo nome.
+    # Por enquanto o sistema possui apenas uma escola.
+    # O vínculo é definido pelo banco e não pelo formulário.
     # --------------------------------------------------------
 
-    escola = None
+    escola = Escola.query.get(1)
 
-    if escola_id:
+    if not escola:
 
-        escola = Escola.query.get(escola_id)
-
-        if not escola:
-            return jsonify({
-                "sucesso": False,
-                "mensagem": "Escola não encontrada."
-            }), 404
-
-    elif escola_nome:
-
-        escola = Escola.query.filter_by(
-            nome=escola_nome
-        ).first()
+        return jsonify({
+            "sucesso": False,
+            "mensagem": (
+                "A Escola Ampara não foi encontrada "
+                "no banco de dados."
+            )
+        }), 500
 
     # --------------------------------------------------------
     # Criar usuário
     # --------------------------------------------------------
 
     usuario = Usuario(
-        nome=nome,
-        email=email,
-        telefone=telefone,
-        perfil=perfil,
-        matricula=matricula,
-        estado=estado,
-        municipio=municipio,
+        nome=dados["nome"],
+        email=dados["email"],
+        telefone=dados["telefone"],
+        perfil=dados["perfil"],
+        matricula=dados["matricula"],
+        estado=dados["estado"],
+        municipio=dados["municipio"],
 
-        # Campo antigo mantido temporariamente
-        escola=escola_nome,
+        # Mantemos o campo antigo por compatibilidade
+        escola=escola.nome,
 
-        # Novo relacionamento
-        escola_id=(
-            escola.id
-            if escola
-            else None
-        ),
+        # Novo relacionamento com a tabela escolas
+        escola_id=escola.id,
 
         senha_hash=generate_password_hash(
-            senha
-        )
+            dados["senha"]
+        ),
+
+        validado=False
     )
 
     db.session.add(usuario)
@@ -232,9 +224,18 @@ def cadastrar():
     return jsonify({
         "sucesso": True,
         "mensagem": "Cadastro enviado.",
-        "usuario": usuario.to_dict()
+        "usuario": {
+            "id": usuario.id,
+            "nome": usuario.nome,
+            "email": usuario.email,
+            "perfil": usuario.perfil,
+            "escola": escola.nome,
+            "escola_id": escola.id
+        }
     }), 201
-
+# ==========================
+# FIM API/CADASTRO USUÁRIO
+# ==========================
 
 @app.route("/api/login", methods=["POST"])
 def login():
