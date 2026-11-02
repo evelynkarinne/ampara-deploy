@@ -300,7 +300,7 @@ class Turma(db.Model):
                 "quantidade_estudantes": len(
                     self.estudantes
                 )
-            }
+        }
 
 
 # ============================================================
