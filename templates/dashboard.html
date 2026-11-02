@@ -613,51 +613,15 @@
             <p style="color: var(--muted); font-size: 0.95rem; margin-bottom: 24px; margin-top: 0;">Clique em uma de suas turmas vinculadas para visualizar e registrar o comportamento dos estudantes.</p>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
-              
-              <!-- Card Turma 1 -->
-              <div class="form-card class-select-card" data-class="1a" style="cursor: pointer; padding: 24px; transition: transform 0.15s, border-color 0.15s; margin-bottom: 0;">
-                <div style="font-size: 2.2rem; margin-bottom: 12px;">🏫</div>
-                <h3 style="margin: 0 0 6px; font-size: 1.3rem;">1º Ano A</h3>
-                <p style="margin: 0; font-size: 0.88rem; color: var(--muted);"><strong style="color: var(--navy);">34</strong> estudantes matriculados</p>
-                <div style="margin-top: 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; color: var(--warn); font-weight: 700;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--warn);"></span>
-                  2 alertas emocionais ativos
+              <div id="teacher-classes-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));gap: 20px;">
+
+                <div style="grid-column: 1 / -1;
+                            text-align: center;
+                            padding: 30px;
+                            color: var(--muted);">
+                    Carregando turmas...
                 </div>
               </div>
-
-              <!-- Card Turma 2 -->
-              <div class="form-card class-select-card" data-class="1b" style="cursor: pointer; padding: 24px; transition: transform 0.15s, border-color 0.15s; margin-bottom: 0;">
-                <div style="font-size: 2.2rem; margin-bottom: 12px;">🏫</div>
-                <h3 style="margin: 0 0 6px; font-size: 1.3rem;">1º Ano B</h3>
-                <p style="margin: 0; font-size: 0.88rem; color: var(--muted);"><strong style="color: var(--navy);">30</strong> estudantes matriculados</p>
-                <div style="margin-top: 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; color: var(--ok); font-weight: 700;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--ok);"></span>
-                  Comportamento estável
-                </div>
-              </div>
-
-              <!-- Card Turma 3 -->
-              <div class="form-card class-select-card" data-class="2a" style="cursor: pointer; padding: 24px; transition: transform 0.15s, border-color 0.15s; margin-bottom: 0;">
-                <div style="font-size: 2.2rem; margin-bottom: 12px;">🏫</div>
-                <h3 style="margin: 0 0 6px; font-size: 1.3rem;">2º Ano A</h3>
-                <p style="margin: 0; font-size: 0.88rem; color: var(--muted);"><strong style="color: var(--navy);">28</strong> estudantes matriculados</p>
-                <div style="margin-top: 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; color: var(--warn); font-weight: 700;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--warn);"></span>
-                  1 alerta emocional ativo
-                </div>
-              </div>
-
-              <!-- Card Turma 4 -->
-              <div class="form-card class-select-card" data-class="2b" style="cursor: pointer; padding: 24px; transition: transform 0.15s, border-color 0.15s; margin-bottom: 0;">
-                <div style="font-size: 2.2rem; margin-bottom: 12px;">🏫</div>
-                <h3 style="margin: 0 0 6px; font-size: 1.3rem;">2º Ano B</h3>
-                <p style="margin: 0; font-size: 0.88rem; color: var(--muted);"><strong style="color: var(--navy);">32</strong> estudantes matriculados</p>
-                <div style="margin-top: 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; color: var(--ok); font-weight: 700;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--ok);"></span>
-                  Comportamento estável
-                </div>
-              </div>
-
             </div>
           </div>
 
@@ -879,6 +843,158 @@
       // PAINEL DO PROFESSOR (Gestão Comportamental & RBAC)
       // ==========================================================
 
+      // ==========================================================
+      // TURMAS REAIS DO BANCO DE DADOS
+      // ==========================================================
+
+      let turmasCadastradas = [];
+        // ----------------------------------------------------------
+        // BUSCAR TURMAS NA API
+        // ----------------------------------------------------------  
+        async function carregarTurmasDashboard() {   
+            const container = document.getElementById(
+                'teacher-classes-container'
+            );  
+            if (!container) return; 
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1;
+                            text-align: center;
+                            padding: 30px;
+                            color: var(--muted);">
+                    Carregando turmas...
+                </div>
+            `;     
+            try {     
+                const resposta = await fetch('/api/turmas');    
+                if (!resposta.ok) {
+                    throw new Error(
+                        `Erro HTTP: ${resposta.status}`
+                    );
+                }    
+                const turmas = await resposta.json();     
+                if (!Array.isArray(turmas)) {
+                    throw new Error(
+                        'A API não retornou uma lista de turmas.'
+                    );
+                }     
+                turmasCadastradas = turmas;     
+                renderizarTurmasDashboard();    
+            } catch (erro) {    
+                console.error(
+                    'Erro ao carregar turmas:',
+                    erro
+                );   
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1;
+                                text-align: center;
+                                padding: 30px;
+                                color: var(--warn);">  
+                        <div style="font-size: 2rem;">⚠️</div>   
+                        <p>
+                            Não foi possível carregar as turmas.
+                        </p>     
+                        <button type="button"
+                                class="btn btn-outline"
+                                onclick="carregarTurmasDashboard()">
+                            Tentar novamente
+                        </button>     
+                    </div>
+                `;
+            }
+        }
+             
+        // ----------------------------------------------------------
+        // MONTAR OS CARTÕES DAS TURMAS
+        // ----------------------------------------------------------     
+        function renderizarTurmasDashboard() {     
+            const container = document.getElementById(
+                'teacher-classes-container'
+            );      
+            if (!container) return;     
+            container.innerHTML = '';       
+            // Verificar se existem turmas cadastradas       
+            if (turmasCadastradas.length === 0) {       
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1;
+                                text-align: center;
+                                padding: 40px;
+                                color: var(--muted);
+                                border: 1px dashed var(--border-strong);
+                                border-radius: var(--radius-sm);">        
+                        <div style="font-size: 2.5rem;">
+                            🏫
+                        </div>       
+                        <h3>Nenhuma turma cadastrada</h3>    
+                        <p>
+                            As turmas cadastradas no sistema
+                            aparecerão aqui.
+                        </p>    
+                    </div>
+                `;    
+                return;
+            }
+            // Criar um cartão para cada turma   
+            turmasCadastradas.forEach(turma => {
+                const card = document.createElement('div');
+                card.className = 'form-card';
+                card.style.cssText = `
+                    padding: 24px;
+                    margin-bottom: 0;
+                    border-radius: var(--radius);
+                `;
+                // Ícone da turma
+                const icone = document.createElement('div');
+                icone.style.cssText = `
+                    font-size: 2.2rem;
+                    margin-bottom: 12px;
+                `;
+                icone.textContent = '🏫';
+                // Nome da turma
+                const titulo = document.createElement('h3');
+                titulo.style.cssText = `
+                    margin: 0 0 10px;
+                    font-size: 1.3rem;
+                    color: var(--navy-dark);
+                `;
+                titulo.textContent = turma.nome || 'Turma sem nome';
+                // Ano escolar
+                const ano = document.createElement('p');
+                ano.style.cssText = `
+                    margin: 0 0 6px;
+                    font-size: 0.88rem;
+                    color: var(--muted);
+                `;
+                ano.textContent = `Ano letivo: ${turma.ano || 'Não informado'}`;
+                // Turno
+                const turno = document.createElement('p');
+                turno.style.cssText = `
+                    margin: 0 0 6px;
+                    font-size: 0.88rem;
+                    color: var(--muted);
+                `;
+                turno.textContent = `Turno: ${turma.turno || 'Não informado'}`;
+                // Quantidade de estudantes
+                const estudantes = document.createElement('p');
+                estudantes.style.cssText = `
+                    margin: 0;
+                    font-size: 0.88rem;
+                    color: var(--muted);
+                `;
+                const quantidade = Number(
+                    turma.quantidade_estudantes || 0
+                );
+                estudantes.textContent =
+                    `${quantidade} estudante(s) cadastrado(s)`;
+                // Montar cartão
+                card.appendChild(icone);
+                card.appendChild(titulo);
+                card.appendChild(ano);
+                card.appendChild(turno);
+                card.appendChild(estudantes);
+                container.appendChild(card);
+            });
+        }
+      
       // Banco de Dados Simulado de Estudantes e Turmas
       const mockStudents = {
         "1a": [
@@ -966,6 +1082,8 @@
         }
 
         inicializarModalEStt();
+        // Carregar turmas reais do PostgreSQL
+        carregarTurmasDashboard();
       }
 
       // --- DADOS E FUNÇÕES DE CAPACITAÇÃO DOCENTE (Track 02) ---
