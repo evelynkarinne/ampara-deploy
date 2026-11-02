@@ -1505,6 +1505,8 @@ function renderizarTurmasDashboard() {
                   card.appendChild(botao);
                   gridContainer.appendChild(card);
               });
+              // Vincular os botões depois que os cartões existem
+              vincularAberturaModal();
           } catch (erro) {
               console.error(
                   'Erro ao carregar estudantes:',
