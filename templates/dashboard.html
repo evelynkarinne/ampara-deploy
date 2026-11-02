@@ -1761,7 +1761,8 @@ function renderizarTurmasDashboard() {
                           throw new Error(`Erro HTTP ${resposta.status}`);
                       }
       
-                      const student = await resposta.json();
+                      const dados = await resposta.json();
+                      const student = dados.estudante;
       
                       // Guardar estudante real selecionado
                       activeStudentForModal = {
