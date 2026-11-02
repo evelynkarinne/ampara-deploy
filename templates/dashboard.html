@@ -1706,7 +1706,46 @@ function renderizarTurmasDashboard() {
             author: authorName
           };
           
-          student.logs.unshift(newLog);
+          // Dados que serão enviados ao banco
+          const dados = {
+            estudante_id: student.id,
+            usuario_id: user.id,
+            tipo: behaviorType,
+            gravidade: severity,
+            descricao: finalLogText
+          };
+
+          // Enviar registro para o Flask salvar no PostgreSQL
+          fetch('/api/registros', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dados)
+          })
+          .then(async resposta => {
+            const resultado = await resposta.json();
+
+            if (!resposta.ok || !resultado.sucesso) {
+              throw new Error(resultado.mensagem || 'Erro ao salvar registro.');
+            }
+
+            if (typeof toast === 'function') {
+              toast(`Registro salvo no banco para ${student.nome.split(' ')[0]}!`);
+            } else {
+              alert('Registro salvo com sucesso!');
+            }
+
+            modal.style.display = "none";
+            activeStudentForModal = null;
+
+            // Atualizar a tela com os dados do banco
+            renderizarDetalhesTurma(classId);
+          })
+          .catch(erro => {
+            console.error('Erro ao salvar registro:', erro);
+            alert('Não foi possível salvar o registro: ' + erro.message);
+          });
           
           if (typeof toast === 'function') {
             toast(`Registro comportamental salvo com sucesso para ${student.nome.split(' ')[0]}!`);
