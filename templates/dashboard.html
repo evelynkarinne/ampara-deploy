@@ -1845,42 +1845,83 @@ function renderizarTurmasDashboard() {
           });
       }
 
+      
       function renderizarLinhaDoTempo(logs) {
-        const timeline = document.getElementById('modal-logs-timeline');
-        if (!logs || logs.length === 0) {
-          timeline.innerHTML = `
-            <div style="text-align: center; color: var(--muted); padding: 16px 0; font-size: 0.88rem;">
-              Nenhuma anotação comportamental registrada anteriormente.
-            </div>
-          `;
-          return;
-        }
-        
-        timeline.innerHTML = '';
-        logs.forEach(log => {
-          const item = document.createElement('div');
-          item.style.cssText = "border-left: 3px solid var(--border-strong); padding-left: 12px; margin-bottom: 8px;";
-          
-          let sevLabel = "Baixa";
-          let sevColor = "var(--ok)";
-          if (log.severity === "medium") {
-            sevLabel = "Média";
-            sevColor = "var(--warn)";
-          } else if (log.severity === "high") {
-            sevLabel = "Alta";
-            sevColor = "#b06a4f";
+      
+          const timeline = document.getElementById(
+              'modal-logs-timeline'
+          );
+      
+          if (!timeline) return;
+      
+          if (!logs || logs.length === 0) {
+      
+              timeline.innerHTML = `
+                  <div style="text-align: center;
+                              color: var(--muted);
+                              padding: 16px 0;
+                              font-size: 0.88rem;">
+      
+                      Nenhuma anotação registrada anteriormente.
+      
+                  </div>
+              `;
+      
+              return;
           }
-          
-          item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px;">
-              <span>📅 ${log.date}</span>
-              <strong style="color: ${sevColor};">Gravidade: ${sevLabel}</strong>
-            </div>
-            <p style="margin: 0; font-size: 0.88rem; color: var(--ink-soft);">${escapeHtml(log.text)}</p>
-          `;
-          timeline.appendChild(item);
-        });
+      
+          timeline.innerHTML = '';
+      
+          logs.forEach(log => {
+      
+              const item = document.createElement('div');
+      
+              item.style.cssText = `
+                  border-left: 3px solid var(--border-strong);
+                  padding-left: 12px;
+                  margin-bottom: 12px;
+              `;
+      
+              let sevLabel = 'Baixa';
+              let sevColor = 'var(--ok)';
+      
+              if (log.severity === 'medium') {
+                  sevLabel = 'Média';
+                  sevColor = 'var(--warn)';
+              }
+      
+              if (log.severity === 'high') {
+                  sevLabel = 'Alta';
+                  sevColor = '#b06a4f';
+              }
+      
+              item.innerHTML = `
+                  <div style="display: flex;
+                              justify-content: space-between;
+                              font-size: 0.78rem;
+                              color: var(--muted);
+                              margin-bottom: 4px;">
+      
+                      <span>📅 ${escapeHtml(log.date || '')}</span>
+      
+                      <strong style="color: ${sevColor};">
+                          Gravidade: ${sevLabel}
+                      </strong>
+      
+                  </div>
+      
+                  <p style="margin: 0;
+                            font-size: 0.88rem;
+                            color: var(--ink-soft);">
+                      ${escapeHtml(log.text || '')}
+                  </p>
+              `;
+      
+              timeline.appendChild(item);
+      
+          });
       }
+
 
       // ==========================================================
       // PAINEL DA COORDENAÇÃO (Busca, Ocorrências, Add Professor)
