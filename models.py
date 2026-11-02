@@ -233,11 +233,13 @@ class Turma(db.Model):
     escola = db.Column(db.String(200), nullable=False)
     escola_id = db.Column(
         db.BigInteger,
-        db.ForeignKey('escolas.id', ondelete='RESTRICT')
+        db.ForeignKey('escolas.id', ondelete='RESTRICT'),
+        nullable=True
     )
     usuario_id = db.Column(
         db.BigInteger,
-        db.ForeignKey('usuarios.id', ondelete='SET NULL')
+        db.ForeignKey('usuarios.id', ondelete='SET NULL'),
+        nullable=True
     )
     data_cadastro = db.Column(
         db.DateTime,
@@ -281,24 +283,24 @@ class Turma(db.Model):
     # CONVERSÃO PARA JSON
     # ========================================================
 
- def to_dict(self):
-    return {
-        "id": self.id,
-        "nome": self.nome,
-        "ano": self.ano,
-        "turno": self.turno,
-        "escola": self.escola,
-        "escola_id": self.escola_id,
-        "usuario_id": self.usuario_id,
-        "data_cadastro": (
-                self.data_cadastro.isoformat()
-                if self.data_cadastro
-                else None
-            ),
-            "quantidade_estudantes": len(
-                self.estudantes
-            )
-        }
+     def to_dict(self):
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "ano": self.ano,
+            "turno": self.turno,
+            "escola": self.escola,
+            "escola_id": self.escola_id,
+            "usuario_id": self.usuario_id,
+            "data_cadastro": (
+                    self.data_cadastro.isoformat()
+                    if self.data_cadastro
+                    else None
+                ),
+                "quantidade_estudantes": len(
+                    self.estudantes
+                )
+            }
 
 
 # ============================================================
