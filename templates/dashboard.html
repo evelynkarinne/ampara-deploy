@@ -1421,68 +1421,105 @@ function renderizarTurmasDashboard() {
         });
       }
 
-      function renderizarDetalhesTurma(classId) {
-        const titleEl = document.getElementById('selected-class-title');
-        const gridContainer = document.getElementById('students-grid-container');
-        
-        const classNameMap = {
-          "1a": "1º Ano A",
-          "1b": "1º Ano B",
-          "2a": "2º Ano A",
-          "2b": "2º Ano B"
-        };
-        
-        titleEl.textContent = `Turma: ${classNameMap[classId]}`;
-        gridContainer.innerHTML = '';
-        
-        const students = mockStudents[classId] || [];
-        students.forEach(student => {
-          const card = document.createElement('div');
-          card.className = 'student-card';
-          
-          const emotions = [
-            { key: "ansiedade", label: "😰 Ansiedade" },
-            { key: "tristeza", label: "😢 Tristeza" },
-            { key: "agitacao", label: "⚡ Agitação" },
-            { key: "apatia", label: "😐 Apatia" },
-            { key: "euforia", label: "🌟 Euforia" }
-          ];
-          
-          let emotionsHtml = '<div class="emotion-badge-group" role="group" aria-label="Estados emocionais ativos">';
-          emotions.forEach(emo => {
-            const isActive = student.activeEmotions.includes(emo.key);
-            emotionsHtml += `
-              <button type="button" class="emotion-btn ${isActive ? 'active' : ''}" data-emotion="${emo.key}" data-student-id="${student.id}" data-class-id="${classId}">
-                ${emo.label}
-              </button>
-            `;
-          });
-          emotionsHtml += '</div>';
-          
-          card.innerHTML = `
-            <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 12px;">
-              <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--lavender); color: var(--navy-dark); display: grid; place-items: center; font-weight: 700; font-size: 1.1rem; flex: none; border: 1px solid var(--border-strong);">
-                ${student.nome.charAt(0)}
+     //Função para mostrar as turmas cadastradas no banco
+      
+      async function renderizarDetalhesTurma(classId) {
+          const titleEl = document.getElementById(
+              'selected-class-title'
+          );
+          const gridContainer = document.getElementById(
+              'students-grid-container'
+          );
+          if (!titleEl || !gridContainer) return;
+          // Localizar turma selecionada
+          const turma = turmasCadastradas.find(
+              item => String(item.id) === String(classId)
+          );
+          titleEl.textContent = turma
+              ? `Turma: ${turma.nome}`
+              : 'Turma selecionada';
+          // Mostrar carregamento
+          gridContainer.innerHTML = `
+              <div style="grid-column: 1 / -1;
+                          text-align: center;
+                          padding: 30px;">
+                  <p>Carregando estudantes...</p>
               </div>
-              <div>
-                <strong style="display: block; font-size: 1rem; color: var(--ink-soft);">${student.nome}</strong>
-                <span style="font-size: 0.8rem; color: var(--muted);">ID: ${student.matricula}</span>
-              </div>
-            </div>
-            
-            <span style="font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 800; color: var(--muted);">Sintomas Observados</span>
-            ${emotionsHtml}
-            
-            <button type="button" class="btn btn-primary btn-open-modal" data-student-id="${student.id}" data-class-id="${classId}" style="width: 100%; padding: 10px; font-size: 0.88rem; font-weight: 700;">
-              Registrar Observação
-            </button>
           `;
-          
-          gridContainer.appendChild(card);
-        });
-        
-        vincularTogglesEmocao();
-        vincularAberturaModal();
+          try {
+              // Consultar estudantes da turma
+              const resposta = await fetch(
+                  `/api/turmas/${encodeURIComponent(classId)}/estudantes`
+              );
+              if (!resposta.ok) {
+                  throw new Error(
+                      `Erro HTTP ${resposta.status}`
+                  );
+              }
+              const estudantes = await resposta.json();
+              if (!Array.isArray(estudantes)) {
+                  throw new Error(
+                      'A resposta da API não é uma lista.'
+                  );
+              }
+              gridContainer.innerHTML = '';
+              // Turma sem estudantes
+              if (estudantes.length === 0) {
+                  gridContainer.innerHTML = `
+                      <div style="grid-column: 1 / -1;
+                                  text-align: center;
+                                  padding: 30px;">
+                          <h3>Nenhum estudante cadastrado</h3>
+                          <p>
+                              Esta turma ainda não possui estudantes.
+                          </p>
+                      </div>
+                  `;
+                  return;
+              }
+              // Criar cartão de cada estudante
+              estudantes.forEach(estudante => {
+                  const card = document.createElement('div');
+                  card.className = 'student-card';
+                  const nome = document.createElement('h3');
+                  nome.textContent =
+                      estudante.nome || 'Estudante sem nome';
+                  const matricula = document.createElement('p');
+                  matricula.textContent =
+                      `Matrícula: ${estudante.matricula || 'Não informada'}`;
+                  card.appendChild(nome);
+                  card.appendChild(matricula);
+                  gridContainer.appendChild(card);
+              });
+          } catch (erro) {
+              console.error(
+                  'Erro ao carregar estudantes:',
+                  erro
+              );  
+              gridContainer.innerHTML = `
+                  <div style="grid-column: 1 / -1;
+                              text-align: center;
+                              padding: 30px;">
+                      <h3>Erro ao carregar estudantes</h3>
+                      <p>
+                          Não foi possível consultar os estudantes.
+                      </p>
+                      <button type="button"
+                              class="btn btn-outline"
+                              id="btn-retry-estudantes">
+                          Tentar novamente
+                      </button>
+                  </div>
+              `;
+              const btnRetry = document.getElementById(
+                  'btn-retry-estudantes'
+              );
+              if (btnRetry) {
+                  btnRetry.addEventListener('click', () => {
+                      renderizarDetalhesTurma(classId);
+                  });
+              }
+          }
       }
 
       function vincularTogglesEmocao() {
