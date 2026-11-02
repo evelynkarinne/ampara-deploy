@@ -7,6 +7,7 @@ db = SQLAlchemy()
 # ESCOLA
 # ============================================================
 
+
 class Escola(db.Model):
     __tablename__ = "escolas"
 
@@ -86,6 +87,7 @@ class Escola(db.Model):
 # ============================================================
 # USUÁRIO
 # ============================================================
+
 
 class Usuario(db.Model):
     __tablename__ = "usuarios"
@@ -222,7 +224,7 @@ class Usuario(db.Model):
 # TURMA
 # ============================================================
 
-#Atualizado 01/11/26
+# Atualizado 01/11/26
 class Turma(db.Model):
     __tablename__ = 'turmas'
 
@@ -283,7 +285,7 @@ class Turma(db.Model):
     # CONVERSÃO PARA JSON
     # ========================================================
 
-     def to_dict(self):
+    def to_dict(self):
         return {
             "id": self.id,
             "nome": self.nome,
@@ -293,19 +295,20 @@ class Turma(db.Model):
             "escola_id": self.escola_id,
             "usuario_id": self.usuario_id,
             "data_cadastro": (
-                    self.data_cadastro.isoformat()
-                    if self.data_cadastro
-                    else None
-                ),
+                self.data_cadastro.isoformat()
+                if self.data_cadastro
+                else None
+            ),
             "quantidade_estudantes": len(
-                    self.estudantes
-                )
-            }
+                self.estudantes
+            )
+        }
 
 
 # ============================================================
 # USUÁRIO ↔ TURMA
 # ============================================================
+
 
 class UsuarioTurma(db.Model):
     __tablename__ = "usuarios_turmas"
@@ -373,6 +376,7 @@ class UsuarioTurma(db.Model):
 # ============================================================
 # ESTUDANTE
 # ============================================================
+
 
 class Estudante(db.Model):
     __tablename__ = "estudantes"
@@ -449,6 +453,7 @@ class Estudante(db.Model):
 # ============================================================
 # REGISTRO DE SAÚDE MENTAL
 # ============================================================
+
 
 class RegistroSaudeMental(db.Model):
     __tablename__ = "registros_saude_mental"
