@@ -297,10 +297,10 @@ class Turma(db.Model):
                     if self.data_cadastro
                     else None
                 ),
-                "quantidade_estudantes": len(
+            "quantidade_estudantes": len(
                     self.estudantes
                 )
-        }
+            }
 
 
 # ============================================================
