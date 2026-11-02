@@ -1489,6 +1489,20 @@ function renderizarTurmasDashboard() {
                       `Matrícula: ${estudante.matricula || 'Não informada'}`;
                   card.appendChild(nome);
                   card.appendChild(matricula);
+                  //botão para abrir o modal de cada estudante
+                  const botao = document.createElement('button');
+                  botao.type = 'button';
+                  botao.className = 'btn-open-modal btn btn-outline';
+                  botao.textContent = 'Ver estudante';
+                  botao.setAttribute(
+                      'data-student-id',
+                      estudante.id
+                  );                 
+                  botao.setAttribute(
+                      'data-class-id',
+                      classId
+                  );                  
+                  card.appendChild(botao);
                   gridContainer.appendChild(card);
               });
           } catch (erro) {
@@ -1706,44 +1720,129 @@ function renderizarTurmasDashboard() {
         });
       }
 
-      function vincularAberturaModal() {
-        const modal = document.getElementById('student-modal');
-        const descInput = document.getElementById('behavior-description');
-        const studentNameInput = document.getElementById('behavior-student-name');
-        const typeSelect = document.getElementById('behavior-type');
-        const charCounter = document.getElementById('char-counter');
-
-        document.querySelectorAll('.btn-open-modal').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const studentId = parseInt(btn.getAttribute('data-student-id'));
-            const classId = btn.getAttribute('data-class-id');
-            
-            const student = mockStudents[classId].find(s => s.id === studentId);
-            if (student) {
-              activeStudentForModal = { student, classId };
-              
-              document.getElementById('modal-student-name').textContent = student.nome;
-              document.getElementById('modal-student-matricula').textContent = `Matrícula: ${student.matricula}`;
-              
-              // Resetar e preencher campos do formulário (Track 04)
-              if (studentNameInput) studentNameInput.value = student.nome;
-              if (typeSelect) typeSelect.value = '';
-              descInput.value = '';
-              if (charCounter) {
-                charCounter.textContent = '0 / 500 caracteres';
-                charCounter.style.color = "var(--muted)";
-                charCounter.style.fontWeight = "normal";
-              }
-
-              document.querySelector('input[name="severity"][value="low"]').checked = true;
-              
-              renderizarLinhaDoTempo(student.logs);
-              
-              modal.style.display = "flex";
-              if (typeSelect) typeSelect.focus();
-            }
+      
+      async function vincularAberturaModal() {
+      
+          const modal = document.getElementById('student-modal');
+          const descInput = document.getElementById('behavior-description');
+          const studentNameInput = document.getElementById('behavior-student-name');
+          const typeSelect = document.getElementById('behavior-type');
+          const charCounter = document.getElementById('char-counter');
+      
+          document.querySelectorAll('.btn-open-modal').forEach(btn => {
+      
+              btn.addEventListener('click', async () => {
+      
+                  const studentId = btn.getAttribute('data-student-id');
+                  const classId = btn.getAttribute('data-class-id');
+      
+                  // Abrir modal
+                  modal.style.display = 'flex';
+      
+                  document.getElementById('modal-student-name').textContent =
+                      'Carregando estudante...';
+      
+                  document.getElementById('modal-student-matricula').textContent =
+                      '';
+      
+                  // Mostrar carregamento no histórico
+                  renderizarLinhaDoTempo([]);
+      
+                  try {
+      
+                      // Consultar estudante real
+                      const resposta = await fetch(
+                          `/api/estudantes/${encodeURIComponent(studentId)}`
+                      );
+      
+                      if (!resposta.ok) {
+                          throw new Error(`Erro HTTP ${resposta.status}`);
+                      }
+      
+                      const student = await resposta.json();
+      
+                      // Guardar estudante real selecionado
+                      activeStudentForModal = {
+                          student,
+                          classId
+                      };
+      
+                      // Atualizar identificação
+                      document.getElementById('modal-student-name').textContent =
+                          student.nome;
+      
+                      document.getElementById('modal-student-matricula').textContent =
+                          `Matrícula: ${student.matricula || 'Não informada'}`;
+      
+                      if (studentNameInput) {
+                          studentNameInput.value = student.nome;
+                      }
+      
+                      // Limpar formulário
+                      if (typeSelect) typeSelect.value = '';
+                      if (descInput) descInput.value = '';
+      
+                      if (charCounter) {
+                          charCounter.textContent = '0 / 500 caracteres';
+                          charCounter.style.color = 'var(--muted)';
+                          charCounter.style.fontWeight = 'normal';
+                      }
+      
+                      const severityLow = document.querySelector(
+                          'input[name="severity"][value="low"]'
+                      );
+      
+                      if (severityLow) severityLow.checked = true;
+      
+                      // Buscar histórico real
+                      const respostaHistorico = await fetch(
+                          `/api/estudantes/${encodeURIComponent(studentId)}/historico`
+                      );
+      
+                      if (!respostaHistorico.ok) {
+                          throw new Error(
+                              `Erro ao consultar histórico: ${respostaHistorico.status}`
+                          );
+                      }
+      
+                      const dadosHistorico = await respostaHistorico.json();
+      
+                      // Guardar histórico no estudante selecionado
+                      activeStudentForModal.student.logs =
+                          dadosHistorico.historico.map(registro => ({
+                              date: registro.data_registro
+                                  ? new Date(registro.data_registro).toLocaleString('pt-BR')
+                                  : 'Data não informada',
+                              severity: registro.gravidade || 'low',
+                              text: `${registro.tipo || 'Registro'}: ${registro.descricao || 'Sem descrição'}`,
+                              author: registro.usuario_id
+                                  ? `Usuário ${registro.usuario_id}`
+                                  : 'Não informado'
+                          }));
+      
+                      // Apresentar histórico
+                      renderizarLinhaDoTempo(
+                          activeStudentForModal.student.logs
+                      );
+      
+                      if (typeSelect) typeSelect.focus();
+      
+                  } catch (erro) {
+      
+                      console.error('Erro ao abrir estudante:', erro);
+      
+                      document.getElementById('modal-student-name').textContent =
+                          'Erro ao carregar estudante';
+      
+                      renderizarLinhaDoTempo([]);
+      
+                      if (typeof toast === 'function') {
+                          toast('Não foi possível carregar os dados do estudante.');
+                      }
+                  }
+              });
+      
           });
-        });
       }
 
       function renderizarLinhaDoTempo(logs) {
