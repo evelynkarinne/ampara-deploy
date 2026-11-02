@@ -222,65 +222,27 @@ class Usuario(db.Model):
 # TURMA
 # ============================================================
 
+#Atualizado 01/11/26
 class Turma(db.Model):
-    __tablename__ = "turmas"
+    __tablename__ = 'turmas'
 
-    id = db.Column(
-        db.BigInteger,
-        primary_key=True
-    )
-
-    nome = db.Column(
-        db.String(100),
-        nullable=False
-    )
-
-    ano = db.Column(
-        db.Integer,
-        nullable=False
-    )
-
-    # --------------------------------------------------------
-    # CAMPO ANTIGO
-    # Mantido temporariamente para compatibilidade.
-    # --------------------------------------------------------
-
-    escola = db.Column(
-        db.String(200),
-        nullable=False
-    )
-
-    # --------------------------------------------------------
-    # NOVO RELACIONAMENTO COM ESCOLA
-    # --------------------------------------------------------
-
+    id = db.Column(db.BigInteger, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    ano = db.Column(db.Integer, nullable=False)
+    turno = db.Column(db.String(20), nullable=False)
+    escola = db.Column(db.String(200), nullable=False)
     escola_id = db.Column(
         db.BigInteger,
-        db.ForeignKey(
-            "escolas.id",
-            ondelete="RESTRICT"
-        ),
-        nullable=True
+        db.ForeignKey('escolas.id', ondelete='RESTRICT')
     )
-
-    # --------------------------------------------------------
-    # CAMPO ANTIGO DE RESPONSÁVEL
-    # Mantido temporariamente para compatibilidade.
-    # --------------------------------------------------------
-
     usuario_id = db.Column(
         db.BigInteger,
-        db.ForeignKey(
-            "usuarios.id",
-            ondelete="SET NULL"
-        ),
-        nullable=True
+        db.ForeignKey('usuarios.id', ondelete='SET NULL')
     )
-
     data_cadastro = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
-        nullable=False
+        nullable=False,
+        default=datetime.utcnow
     )
 
     # ========================================================
@@ -319,15 +281,16 @@ class Turma(db.Model):
     # CONVERSÃO PARA JSON
     # ========================================================
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "nome": self.nome,
-            "ano": self.ano,
-            "escola": self.escola,
-            "escola_id": self.escola_id,
-            "usuario_id": self.usuario_id,
-            "data_cadastro": (
+ def to_dict(self):
+    return {
+        "id": self.id,
+        "nome": self.nome,
+        "ano": self.ano,
+        "turno": self.turno,
+        "escola": self.escola,
+        "escola_id": self.escola_id,
+        "usuario_id": self.usuario_id,
+        "data_cadastro": (
                 self.data_cadastro.isoformat()
                 if self.data_cadastro
                 else None
