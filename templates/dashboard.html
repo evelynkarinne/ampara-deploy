@@ -851,149 +851,173 @@
         // ----------------------------------------------------------
         // BUSCAR TURMAS NA API
         // ----------------------------------------------------------  
-        async function carregarTurmasDashboard() {   
-            const container = document.getElementById(
-                'teacher-classes-container'
-            );  
-            if (!container) return; 
-            container.innerHTML = `
-                <div style="grid-column: 1 / -1;
-                            text-align: center;
-                            padding: 30px;
-                            color: var(--muted);">
-                    Carregando turmas...
-                </div>
-            `;     
-            try {     
-                const resposta = await fetch('/api/turmas');    
-                if (!resposta.ok) {
-                    throw new Error(
-                        `Erro HTTP: ${resposta.status}`
-                    );
-                }    
-                const turmas = await resposta.json();     
-                if (!Array.isArray(turmas)) {
-                    throw new Error(
-                        'A API não retornou uma lista de turmas.'
-                    );
-                }     
-                turmasCadastradas = turmas;     
-                renderizarTurmasDashboard();    
-            } catch (erro) {    
-                console.error(
-                    'Erro ao carregar turmas:',
-                    erro
-                );   
-                container.innerHTML = `
-                    <div style="grid-column: 1 / -1;
-                                text-align: center;
-                                padding: 30px;
-                                color: var(--warn);">  
-                        <div style="font-size: 2rem;">⚠️</div>   
-                        <p>
-                            Não foi possível carregar as turmas.
-                        </p>     
-                        <button type="button"
-                                class="btn btn-outline"
-                                onclick="carregarTurmasDashboard()">
-                            Tentar novamente
-                        </button>     
-                    </div>
-                `;
-            }
+    
+async function carregarTurmasDashboard() {
+    const container = document.getElementById(
+        'teacher-classes-container'
+    );
+    if (!container) return;
+    container.innerHTML = `
+        <div style="grid-column: 1 / -1;
+                    text-align: center;
+                    padding: 30px;
+                    color: var(--muted);">
+            Carregando turmas...
+        </div>
+    `;
+    try {
+        const resposta = await fetch('/api/turmas');
+        if (!resposta.ok) {
+            throw new Error(`Erro HTTP: ${resposta.status}`);
         }
-             
+        const turmas = await resposta.json();
+        if (!Array.isArray(turmas)) {
+            throw new Error(
+                'A API não retornou uma lista de turmas.'
+            );
+        }
+        turmasCadastradas = turmas;
+        renderizarTurmasDashboard();
+    } catch (erro) {
+        console.error('Erro ao carregar turmas:', erro);
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1;
+                        text-align: center;
+                        padding: 30px;
+                        color: var(--warn);">
+                <div style="font-size: 2rem;">⚠️</div>
+                <p>Não foi possível carregar as turmas.</p>
+                <button type="button"
+                        class="btn btn-outline"
+                        id="btn-retry-turmas">
+                    Tentar novamente
+                </button>
+            </div>
+        `;
+        const btnRetry = document.getElementById(
+            'btn-retry-turmas'
+        );
+        if (btnRetry) {
+            btnRetry.addEventListener(
+                'click',
+                carregarTurmasDashboard
+            );
+        }
+    }
+}          
         // ----------------------------------------------------------
         // MONTAR OS CARTÕES DAS TURMAS
         // ----------------------------------------------------------     
-        function renderizarTurmasDashboard() {     
-            const container = document.getElementById(
-                'teacher-classes-container'
-            );      
-            if (!container) return;     
-            container.innerHTML = '';       
-            // Verificar se existem turmas cadastradas       
-            if (turmasCadastradas.length === 0) {       
-                container.innerHTML = `
-                    <div style="grid-column: 1 / -1;
-                                text-align: center;
-                                padding: 40px;
-                                color: var(--muted);
-                                border: 1px dashed var(--border-strong);
-                                border-radius: var(--radius-sm);">        
-                        <div style="font-size: 2.5rem;">
-                            🏫
-                        </div>       
-                        <h3>Nenhuma turma cadastrada</h3>    
-                        <p>
-                            As turmas cadastradas no sistema
-                            aparecerão aqui.
-                        </p>    
-                    </div>
-                `;    
-                return;
+        
+function renderizarTurmasDashboard() {
+    const container = document.getElementById(
+        'teacher-classes-container'
+    );
+    if (!container) return;
+    container.innerHTML = '';
+    // Verificar se existem turmas cadastradas
+    if (turmasCadastradas.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1;
+                        text-align: center;
+                        padding: 40px;
+                        color: var(--muted);
+                        border: 1px dashed var(--border-strong);
+                        border-radius: var(--radius-sm);">
+                <div style="font-size: 2.5rem;">🏫</div>
+                <h3>Nenhuma turma cadastrada</h3>
+                <p>
+                    As turmas cadastradas no sistema
+                    aparecerão aqui.
+                </p>
+            </div>
+        `;
+        return;
+    }
+    // Criar um cartão para cada turma
+    turmasCadastradas.forEach(turma => {
+        const card = document.createElement('div');
+        card.className = 'form-card class-select-card';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.style.cssText = `
+            padding: 24px;
+            margin-bottom: 0;
+            border-radius: var(--radius);
+            cursor: pointer;
+        `;
+        // Ícone
+        const icone = document.createElement('div');
+        icone.style.cssText = `
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+        `;
+        icone.textContent = '🏫';
+        // Nome da turma
+        const titulo = document.createElement('h3');
+        titulo.style.cssText = `
+            margin: 0 0 10px;
+            font-size: 1.3rem;
+            color: var(--navy-dark);
+        `;
+        titulo.textContent = turma.nome || 'Turma sem nome';
+        // Ano
+        const ano = document.createElement('p');
+        ano.style.cssText = `
+            margin: 0 0 6px;
+            font-size: 0.88rem;
+            color: var(--muted);
+        `;
+        ano.textContent =
+            `Ano letivo: ${turma.ano || 'Não informado'}`;
+        // Turno
+        const turno = document.createElement('p');
+        turno.style.cssText = `
+            margin: 0 0 6px;
+            font-size: 0.88rem;
+            color: var(--muted);
+        `;
+        turno.textContent =
+            `Turno: ${turma.turno || 'Não informado'}`;
+        // Quantidade de estudantes
+        const estudantes = document.createElement('p');
+        estudantes.style.cssText = `
+            margin: 0;
+            font-size: 0.88rem;
+            color: var(--muted);
+        `;
+        const quantidade = Number(
+            turma.quantidade_estudantes || 0
+        );
+        estudantes.textContent =
+            `${quantidade} estudante(s) cadastrado(s)`;
+        // Montar cartão
+        card.appendChild(icone);
+        card.appendChild(titulo);
+        card.appendChild(ano);
+        card.appendChild(turno);
+        card.appendChild(estudantes);
+        // Ação para selecionar a turma
+        const selecionarTurma = () => {
+            currentSelectedClass = String(turma.id);
+            renderizarTurmasDocente();
+        };
+        // Clique do mouse
+        card.addEventListener('click', selecionarTurma);
+        // Acessibilidade: Enter ou espaço
+        card.addEventListener('keydown', evento => {
+            if (
+                evento.key === 'Enter' ||
+                evento.key === ' '
+            ) {
+                evento.preventDefault();
+                selecionarTurma();
             }
-            // Criar um cartão para cada turma   
-            turmasCadastradas.forEach(turma => {
-                const card = document.createElement('div');
-                card.className = 'form-card';
-                card.style.cssText = `
-                    padding: 24px;
-                    margin-bottom: 0;
-                    border-radius: var(--radius);
-                `;
-                // Ícone da turma
-                const icone = document.createElement('div');
-                icone.style.cssText = `
-                    font-size: 2.2rem;
-                    margin-bottom: 12px;
-                `;
-                icone.textContent = '🏫';
-                // Nome da turma
-                const titulo = document.createElement('h3');
-                titulo.style.cssText = `
-                    margin: 0 0 10px;
-                    font-size: 1.3rem;
-                    color: var(--navy-dark);
-                `;
-                titulo.textContent = turma.nome || 'Turma sem nome';
-                // Ano escolar
-                const ano = document.createElement('p');
-                ano.style.cssText = `
-                    margin: 0 0 6px;
-                    font-size: 0.88rem;
-                    color: var(--muted);
-                `;
-                ano.textContent = `Ano letivo: ${turma.ano || 'Não informado'}`;
-                // Turno
-                const turno = document.createElement('p');
-                turno.style.cssText = `
-                    margin: 0 0 6px;
-                    font-size: 0.88rem;
-                    color: var(--muted);
-                `;
-                turno.textContent = `Turno: ${turma.turno || 'Não informado'}`;
-                // Quantidade de estudantes
-                const estudantes = document.createElement('p');
-                estudantes.style.cssText = `
-                    margin: 0;
-                    font-size: 0.88rem;
-                    color: var(--muted);
-                `;
-                const quantidade = Number(
-                    turma.quantidade_estudantes || 0
-                );
-                estudantes.textContent =
-                    `${quantidade} estudante(s) cadastrado(s)`;
-                // Montar cartão
-                card.appendChild(icone);
-                card.appendChild(titulo);
-                card.appendChild(ano);
-                card.appendChild(turno);
-                card.appendChild(estudantes);
-                container.appendChild(card);
-            });
-        }
+        });
+        container.appendChild(card);
+    });
+}
+
       
       // Banco de Dados Simulado de Estudantes e Turmas
       const mockStudents = {
